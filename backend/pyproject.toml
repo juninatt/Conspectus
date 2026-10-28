@@ -1,0 +1,46 @@
+[project]
+name = "conspectus"
+version = "0.1.0"
+description = "Reads tabular data from configurable sources and serves it over a REST API."
+authors = [{ name = "Petter Bergström" }]
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.162.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.4,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.4.0",
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # likely bugs
+    "UP",  # modern Python syntax
+    "SIM", # simplifications
+]
+
+[tool.mypy]
+strict = true
+packages = ["conspectus", "tests"]
+mypy_path = "src"
