@@ -1,5 +1,7 @@
 """Application entry point."""
 
+from importlib.metadata import version
+
 from fastapi import FastAPI
 
 from conspectus.api import health
@@ -10,7 +12,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Conspectus",
         summary="Tabular data from configurable sources, served over HTTP.",
-        version="0.1.0",
+        version=version("conspectus"),
     )
     app.include_router(health.router)
     return app
