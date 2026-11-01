@@ -72,3 +72,18 @@ Docker. ruff replaces several tools with one fast one. Strict typing from day
 one is much cheaper than adding it later, and the dataset model – columns and
 types – is the core of the application. The `src/` layout makes tests run
 against the installed package, which catches packaging mistakes early.
+
+## 009 – Semantic versioning with changelog and tags (2026-11-01)
+**Decision:** Plan and release work as Semantic Versioning milestones
+(`MAJOR.MINOR.PATCH`). Each release is recorded in `CHANGELOG.md` and marked
+with an annotated git tag `vX.Y.Z`. The version number is defined once, in
+`backend/pyproject.toml`.
+
+**Why:** Versions give each milestone a clear scope and a point in history
+that can be found, compared and rolled back to. A changelog tells readers
+what changed without digging through commits. A single source for the version
+number prevents it from drifting between files. Before 1.0.0 the API may
+still change; 1.0.0 marks the first complete release for local use.
+
+The SQLite reader is planned before the frontend so that the dataset model is
+proven against two formats before anything is built on top of it.
