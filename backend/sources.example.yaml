@@ -1,0 +1,26 @@
+# Source configuration for Conspectus.
+#
+# Copy this file to `sources.yaml` (which is not committed) and list your own
+# data sources. Point CONSPECTUS_SOURCES at another file to use it instead.
+#
+# Fields per source:
+#   name         Display name. The source id is derived from it:
+#                "Weather stations" -> "weather-stations".
+#   description  Optional.
+#   format       Data format. Supported: json
+#   path         Data file. Relative paths are resolved from this file's folder.
+#   columns      Optional. Sets the type of specific columns instead of
+#                inferring it: string, integer, number, boolean, date, datetime.
+#
+# WARNING: Renaming a source changes its id. Anything that refers to the old
+# id stops working: API URLs such as /datasets/weather-stations return
+# "not found", and saved dashboards lose that source. Two names that give the
+# same id are rejected at startup.
+
+sources:
+  - name: Weather stations
+    description: Hourly readings from all stations
+    format: json
+    path: examples/measurements.json
+    columns:
+      samples: number

@@ -1,0 +1,25 @@
+[
+  {
+    "timestamp": "2026-10-01T08:00:00",
+    "station": "north",
+    "temperature": 12.5,
+    "samples": 42,
+    "active": true,
+    "serviced": "2026-09-15"
+  },
+  {
+    "timestamp": "2026-10-01T09:00:00",
+    "station": "south",
+    "temperature": null,
+    "samples": 40,
+    "active": false,
+    "serviced": "2026-09-20"
+  },
+  {
+    "timestamp": "2026-10-01T10:00:00",
+    "station": "north",
+    "temperature": 14,
+    "samples": 45,
+    "active": true
+  }
+]
