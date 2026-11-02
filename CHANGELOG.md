@@ -7,6 +7,13 @@ and the project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Source configuration in `sources.yaml`, validated with clear errors per
+  source and field. Source ids are derived from source names.
+- Per-column type overrides; values that do not fit are reported by row.
+- `CONSPECTUS_SOURCES` setting to load the configuration from another path.
+- Example configuration with sample data.
+
 ## [0.2.0] – 2026-11-02
 
 ### Added

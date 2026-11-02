@@ -116,3 +116,30 @@ naive date-times also falls back to `string`, since they cannot be compared.
 tens of thousands of rows; streaming can be added behind the same reader
 interface if needed. Per-column type overrides are planned for the source
 configuration in 0.3.0.
+
+## 011 – Source configuration (2026-11-02)
+**Decision:** Sources are listed in a YAML file, `sources.yaml`, read with
+PyYAML's safe loader and validated with Pydantic. Rules:
+- Only `sources.example.yaml` is committed; the real file is local. Its
+  location defaults to the working directory and can be changed with
+  `CONSPECTUS_SOURCES`.
+- Each source has `name`, `format` and format-specific fields (`path` for
+  JSON), plus optional `description` and per-column type overrides.
+- The source **id is derived from the name**. Renaming a source changes its
+  id, which breaks URLs and references to the old id; this is documented
+  with a warning. Names giving the same id are rejected.
+- Relative data paths are resolved from the folder of the configuration file.
+- Unknown fields are errors. The structure is validated when loaded; data
+  files are only checked when read.
+- A type override is strict: every value must fit, otherwise reading fails
+  with the row and column. Overrides for columns that don't exist are errors.
+
+**Why:** A real configuration contains local paths to other projects, which
+don't belong in a public, source-agnostic repository. Deriving ids keeps the
+configuration minimal; the cost – unstable ids on rename – was accepted and
+is made visible instead. Resolving paths from the configuration file makes
+behaviour independent of where the server is started. Rejecting unknown
+fields turns typos into errors instead of silent misconfiguration. Checking
+data files lazily lets Conspectus start before producers have written their
+files. Overrides are strict because an explicitly stated type is a promise
+about the data, unlike inference, which is deliberately lenient.

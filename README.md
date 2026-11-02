@@ -89,11 +89,52 @@ version automatically).
 ```bash
 cd backend
 uv sync                                  # create environment, install deps
+cp sources.example.yaml sources.yaml     # then list your own sources
 uv run fastapi dev src/conspectus/main.py
 ```
 
 The API is then available at <http://localhost:8000>, with interactive
 documentation at <http://localhost:8000/docs>.
+
+## Configuring sources
+
+Sources are listed in `backend/sources.yaml`. The file is local and not
+committed; start from [sources.example.yaml](backend/sources.example.yaml).
+To use a file elsewhere, set `CONSPECTUS_SOURCES` to its path.
+
+```yaml
+sources:
+  - name: Weather stations          # id: weather-stations
+    description: Hourly readings    # optional
+    format: json
+    path: data/measurements.json    # relative to sources.yaml
+    columns:                        # optional type overrides
+      serviced: date
+```
+
+| Field | Required | Meaning |
+|-------|----------|---------|
+| `name` | yes | Display name. The source id is derived from it. |
+| `description` | no | Free text. |
+| `format` | yes | Data format. Supported: `json`. |
+| `path` | yes | Data file. Relative paths are resolved from the folder of `sources.yaml`; `~` is expanded. |
+| `columns` | no | Column name → type, overriding inference. Every value must fit the type, or reading the source fails with an error naming the row. |
+
+The **id** is the name in lowercase, with accents removed and anything other
+than letters and digits replaced by hyphens: `Weather stations` →
+`weather-stations`.
+
+> [!WARNING]
+> **Renaming a source changes its id.** Everything that refers to the old id
+> stops working: API URLs such as `/datasets/weather-stations` return
+> *not found*, and saved dashboards lose that source. Two names that result
+> in the same id are rejected.
+
+The configuration is validated when it is loaded: unknown fields, missing
+fields and unsupported formats or types are reported with the source they
+belong to. Whether data files exist is only checked when a source is read,
+since the producing application may not have written them yet. Changes to
+`sources.yaml` require a restart.
 
 ## Development
 
