@@ -92,3 +92,33 @@ def test_rejects_unsupported_content(
 ) -> None:
     with pytest.raises(ReaderError, match=message):
         JsonReader(write_json(tmp_path, content)).read()
+
+
+def test_applies_column_type_overrides(tmp_path: Path) -> None:
+    path = write_json(tmp_path, '[{"code": 7, "level": 2}, {"code": 8, "level": 3}]')
+
+    dataset = JsonReader(
+        path, {"code": ColumnType.STRING, "level": ColumnType.NUMBER}
+    ).read()
+
+    assert [column.type for column in dataset.columns] == [
+        ColumnType.STRING,
+        ColumnType.NUMBER,
+    ]
+    assert dataset.rows[0] == {"code": "7", "level": 2.0}
+
+
+def test_rejects_value_not_fitting_override(tmp_path: Path) -> None:
+    path = write_json(tmp_path, '[{"day": "2026-10-01"}, {"day": "soon"}]')
+
+    with pytest.raises(
+        ReaderError, match="row 2, column 'day': 'soon' is not a valid date"
+    ):
+        JsonReader(path, {"day": ColumnType.DATE}).read()
+
+
+def test_rejects_override_for_unknown_column(tmp_path: Path) -> None:
+    path = write_json(tmp_path, '[{"day": "2026-10-01"}]')
+
+    with pytest.raises(ReaderError, match="unknown column.*'dya'"):
+        JsonReader(path, {"dya": ColumnType.DATE}).read()

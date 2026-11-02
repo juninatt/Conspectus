@@ -4,27 +4,45 @@ import json
 from pathlib import Path
 from typing import cast
 
-from conspectus.models import Column, Dataset
+from conspectus.models import Column, ColumnType, Dataset
 from conspectus.readers.base import ReaderError
-from conspectus.readers.inference import Scalar, convert, infer_type
+from conspectus.readers.inference import (
+    Scalar,
+    TypeMismatch,
+    check_type,
+    convert,
+    infer_type,
+)
 
 type Record = dict[str, Scalar]
 
 
 class JsonReader:
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self, path: Path, column_types: dict[str, ColumnType] | None = None
+    ) -> None:
+        """Read `path`; `column_types` overrides the inferred type per column."""
         self._path = path
+        self._column_types = column_types or {}
 
     def read(self) -> Dataset:
         records = self._load()
 
         # Columns are every key found in any row, in order of first appearance.
         names = list(dict.fromkeys(key for record in records for key in record))
+        if records:
+            unknown = [name for name in self._column_types if name not in names]
+            if unknown:
+                raise ReaderError(
+                    f"{self._path}: type set for unknown column(s) "
+                    + ", ".join(f"'{name}'" for name in unknown)
+                )
+
         columns: list[Column] = []
         values_by_name: dict[str, list[Scalar]] = {}
         for name in names:
             values = [record.get(name) for record in records]
-            column_type = infer_type(values)
+            column_type = self._column_type(name, values)
             columns.append(Column(name=name, type=column_type, nullable=None in values))
             values_by_name[name] = values
 
@@ -36,6 +54,19 @@ class JsonReader:
             for index in range(len(records))
         ]
         return Dataset(columns=columns, rows=rows)
+
+    def _column_type(self, name: str, values: list[Scalar]) -> ColumnType:
+        column_type = self._column_types.get(name)
+        if column_type is None:
+            return infer_type(values)
+        try:
+            check_type(values, column_type)
+        except TypeMismatch as error:
+            row = f", row {error.row}" if error.row is not None else ""
+            raise ReaderError(
+                f"{self._path}{row}, column '{name}': {error.reason}"
+            ) from error
+        return column_type
 
     def _load(self) -> list[Record]:
         try:
