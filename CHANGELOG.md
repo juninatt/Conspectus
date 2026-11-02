@@ -8,6 +8,11 @@ and the project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Dataset model: typed, nullable columns and rows that are checked to match
+  them.
+- JSON reader for tabular JSON, with column type inference for strings,
+  integers, numbers, booleans, ISO 8601 dates and date-times.
+- Clear errors for unreadable files, malformed JSON and nested values.
 - Changelog and versioned roadmap in `docs/roadmap.md`.
 - README sections on supported data formats and development conventions.
 

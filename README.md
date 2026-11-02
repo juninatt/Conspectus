@@ -33,7 +33,7 @@ frontend (React + TypeScript): dataset list, tables, charts, dashboards
 
 | Format | Status |
 |--------|--------|
-| Tabular JSON – a list of flat objects, one per row | Planned (0.2.0) |
+| Tabular JSON – a list of flat objects, one per row | Reader available (0.2.0) |
 | SQLite | Planned (0.5.0) |
 | CSV | Planned |
 
@@ -41,12 +41,32 @@ Example of tabular JSON:
 
 ```json
 [
-  {"date": "2026-10-01", "query": "first", "score": 0.82},
-  {"date": "2026-10-02", "query": "second", "score": 0.67}
+  {"timestamp": "2026-10-01T08:00:00", "station": "north", "temperature": 12.5},
+  {"timestamp": "2026-10-01T09:00:00", "station": "south", "temperature": null}
 ]
 ```
 
-Arbitrarily nested JSON is not supported.
+- Columns are all keys found in any row, in order of first appearance.
+  A key missing from a row counts as a missing value.
+- Nested objects or lists inside a row are not supported; the file is
+  rejected with an error naming the row and column.
+
+### Column types
+
+Formats without a schema, such as JSON, get their column types inferred:
+
+| Type | Inferred when all values are … |
+|------|--------------------------------|
+| `integer` | whole numbers |
+| `number` | numbers, with at least one decimal |
+| `boolean` | `true` / `false` |
+| `date` | ISO 8601 dates, e.g. `2026-10-01` |
+| `datetime` | ISO 8601 date-times, e.g. `2026-10-01T14:30:00Z` (date-only values allowed in the mix) |
+| `string` | anything else, including mixed types |
+
+Missing values are ignored when inferring, and mark the column as nullable.
+Only ISO 8601 dates are recognised – ambiguous formats like `01/10/2026` stay
+strings rather than being guessed.
 
 ## Tech stack
 

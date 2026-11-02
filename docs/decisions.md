@@ -87,3 +87,32 @@ still change; 1.0.0 marks the first complete release for local use.
 
 The SQLite reader is planned before the frontend so that the dataset model is
 proven against two formats before anything is built on top of it.
+
+## 010 – Dataset model and column type inference (2026-11-02)
+**Decision:** Every reader returns a `Dataset`: a list of columns (name, type,
+nullable) and rows keyed by column name. Column types are `string`,
+`integer`, `number`, `boolean`, `date` and `datetime`. For formats without a
+schema the type is inferred from the values:
+- missing values (`null` or absent keys) are ignored and make the column
+  nullable; a column with only missing values is `string`
+- dates are recognised only in ISO 8601 form
+- a mix of integers and decimals is `number`; a mix of dates and date-times
+  is `datetime`; any other mix is `string`
+- nested objects or lists are rejected with an error
+
+Readers receive their settings when created and expose a single `read()`
+method, so all formats share one interface.
+
+**Why:** Rows keyed by name match both tabular JSON and how the frontend
+table consumes data. Integers and decimals are kept apart because they are
+used differently (counts and ids versus measurements). Accepting only ISO
+dates avoids silently misreading ambiguous formats such as `01/10/2026`.
+Falling back to `string` keeps imperfect data viewable instead of failing
+the whole dataset, while nested data is rejected explicitly because it is
+out of scope rather than something to guess at. Mixing time-zone-aware and
+naive date-times also falls back to `string`, since they cannot be compared.
+
+**Known limitation:** files are read fully into memory. This is fine for
+tens of thousands of rows; streaming can be added behind the same reader
+interface if needed. Per-column type overrides are planned for the source
+configuration in 0.3.0.
